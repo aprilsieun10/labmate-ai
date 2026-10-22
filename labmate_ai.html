@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabMate AI - 청소년 과학 탐구 & 실험 가이드</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .step-active {
+            color: #2563eb;
+            border-color: #2563eb;
+            font-weight: 700;
+        }
+        .step-completed {
+            color: #16a34a;
+            border-color: #16a34a;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goToStep(1)">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-flask-vial text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900 leading-tight">LabMate <span class="text-blue-600">AI</span></h1>
+                    <p class="text-xs text-slate-500">청소년 과학 탐구 & 실험 가이드</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSavedNotebookModal()" class="flex items-center space-x-2 px-3.5 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                    <i class="fa-solid fa-book-bookmark text-blue-600"></i>
+                    <span>나의 탐구 노트 (<span id="saved-count">0</span>)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
+
+        <!-- Progress Indicator -->
+        <nav aria-label="Progress" class="mb-8">
+            <ol role="list" class="flex items-center justify-between border-b border-slate-200 pb-4 text-xs md:text-sm font-medium">
+                <li id="step-indicator-1" class="step-active flex items-center space-x-2 border-b-2 border-blue-600 pb-2 -mb-4 transition-all">
+                    <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">1</span>
+                    <span>과목 및 키워드</span>
+                </li>
+                <li id="step-indicator-2" class="text-slate-400 flex items-center space-x-2 pb-2 -mb-4 transition-all">
+                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold">2</span>
+                    <span>실험 환경 & 예산</span>
+                </li>
+                <li id="step-indicator-3" class="text-slate-400 flex items-center space-x-2 pb-2 -mb-4 transition-all">
+                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold">3</span>
+                    <span>주제 추천</span>
+                </li>
+                <li id="step-indicator-4" class="text-slate-400 flex items-center space-x-2 pb-2 -mb-4 transition-all">
+                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold">4</span>
+                    <span>실험 수행 및 AI 도우미</span>
+                </li>
+                <li id="step-indicator-5" class="text-slate-400 flex items-center space-x-2 pb-2 -mb-4 transition-all">
+                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold">5</span>
+                    <span>결과 기록 및 저장</span>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed top-20 right-5 z-50 transform translate-x-full transition-transform duration-300 ease-in-out bg-slate-800 text-white px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3 text-sm">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-green-400"></i>
+            <span id="toast-msg">알림 메시지</span>
+        </div>
+
+        <!-- ==================== STEP 1: Subject & Keywords ==================== -->
+        <section id="step-1-content" class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
+            <div class="mb-6">
+                <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider">Step 1</span>
+                <h2 class="text-2xl font-bold text-slate-900 mt-2">탐구하고 싶은 과학 과목을 선택해주세요</h2>
+                <p class="text-slate-500 text-sm mt-1">선택하신 과목 영역의 실험 주제만 엄선되어 추천됩니다.</p>
+            </div>
+
+            <!-- Subject Selection Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <!-- Biology -->
+                <button type="button" onclick="selectSubject('생물')" id="btn-subject-생물" class="subject-btn group relative border-2 border-slate-200 hover:border-emerald-500 rounded-2xl p-5 text-left transition-all hover:shadow-md flex flex-col justify-between h-36 bg-white">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-dna"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-900 text-lg">생물</div>
+                        <div class="text-xs text-slate-500">삼투압, 효소, 세포, 식물 등</div>
+                    </div>
+                    <div class="selected-check hidden absolute top-3 right-3 text-emerald-500 text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </button>
+
+                <!-- Chemistry -->
+                <button type="button" onclick="selectSubject('화학')" id="btn-subject-화학" class="subject-btn group relative border-2 border-slate-200 hover:border-amber-500 rounded-2xl p-5 text-left transition-all hover:shadow-md flex flex-col justify-between h-36 bg-white">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-vial-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-900 text-lg">화학</div>
+                        <div class="text-xs text-slate-500">산염기, 반응속도, 용해도 등</div>
+                    </div>
+                    <div class="selected-check hidden absolute top-3 right-3 text-amber-500 text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </button>
+
+                <!-- Physics -->
+                <button type="button" onclick="selectSubject('물리')" id="btn-subject-물리" class="subject-btn group relative border-2 border-slate-200 hover:border-blue-500 rounded-2xl p-5 text-left transition-all hover:shadow-md flex flex-col justify-between h-36 bg-white">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-900 text-lg">물리</div>
+                        <div class="text-xs text-slate-500">전자기력, 빛의 굴절, 파동 등</div>
+                    </div>
+                    <div class="selected-check hidden absolute top-3 right-3 text-blue-500 text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </button>
+
+                <!-- Earth Science -->
+                <button type="button" onclick="selectSubject('지구과학')" id="btn-subject-지구과학" class="subject-btn group relative border-2 border-slate-200 hover:border-purple-500 rounded-2xl p-5 text-left transition-all hover:shadow-md flex flex-col justify-between h-36 bg-white">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-900 text-lg">지구과학</div>
+                        <div class="text-xs text-slate-500">대기압, 암석관찰, 천체, 날씨 등</div>
+                    </div>
+                    <div class="selected-check hidden absolute top-3 right-3 text-purple-500 text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Optional Keyword Input -->
+            <div class="mb-8">
+                <label for="keyword-input" class="block text-sm font-semibold text-slate-700 mb-2">관심 키워드 (선택 사항)</label>
+                <div class="relative">
+                    <input type="text" id="keyword-input" placeholder="예: 광합성, 재생에너지, 삼투현상, 중화반응 등" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 text-sm pl-10">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                </div>
+                <p class="text-xs text-slate-400 mt-1.5">* 키워드를 입력하시면 AI가 더욱 정확한 맞춤 실험을 추천합니다.</p>
+            </div>
+
+            <!-- Next Step Button -->
+            <div class="flex justify-end">
+                <button onclick="goToStep(2)" id="step1-next-btn" disabled class="px-6 py-3 bg-slate-300 text-slate-500 font-semibold rounded-xl transition-all flex items-center space-x-2 cursor-not-allowed">
+                    <span>다음 단계 (실험 환경)</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 2: Lab Environment & Budget ==================== -->
+        <section id="step-2-content" class="hidden bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
+            <div class="mb-6">
+                <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider">Step 2</span>
+                <h2 class="text-2xl font-bold text-slate-900 mt-2">보유 중인 실험 기구 및 예산을 입력해주세요</h2>
+                <p class="text-slate-500 text-sm mt-1">준비할 수 있는 재료 환경에 맞는 실현 가능한 실험을 찾아 드립니다.</p>
+            </div>
+
+            <!-- Available Equipment Chips -->
+            <div class="mb-8">
+                <label class="block text-sm font-semibold text-slate-700 mb-3">보유 및 사용 가능한 기구 선택 (다중 선택 가능)</label>
+                <div class="flex flex-wrap gap-2.5" id="equipment-chips-container">
+                    <!-- Dynamic equipment chips inserted via JS -->
+                </div>
+
+                <!-- Custom Equipment Input -->
+                <div class="mt-4 flex items-center space-x-2">
+                    <input type="text" id="custom-equipment-input" placeholder="기타 보유 도구 입력 (예: 스마트폰 카메라, 저울)" class="px-3.5 py-2 text-sm border border-slate-200 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="button" onclick="addCustomEquipment()" class="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors">추가</button>
+                </div>
+            </div>
+
+            <!-- Budget Selection -->
+            <div class="mb-8">
+                <label class="block text-sm font-semibold text-slate-700 mb-3">준비물 구매 예산 범위</label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <button type="button" onclick="selectBudget('0원 (집에 있는 재료)')" id="budget-0" class="budget-btn border-2 border-slate-200 rounded-xl p-3.5 text-center text-sm font-medium hover:border-blue-500 transition-all bg-white">
+                        0원 (집에 있는 재료)
+                    </button>
+                    <button type="button" onclick="selectBudget('1만원 이하')" id="budget-10000" class="budget-btn border-2 border-slate-200 rounded-xl p-3.5 text-center text-sm font-medium hover:border-blue-500 transition-all bg-white">
+                        1만원 이하
+                    </button>
+                    <button type="button" onclick="selectBudget('3만원 이하')" id="budget-30000" class="budget-btn border-2 border-slate-200 rounded-xl p-3.5 text-center text-sm font-medium hover:border-blue-500 transition-all bg-white">
+                        3만원 이하
+                    </button>
+                    <button type="button" onclick="selectBudget('제한 없음')" id="budget-any" class="budget-btn border-2 border-slate-200 rounded-xl p-3.5 text-center text-sm font-medium hover:border-blue-500 transition-all bg-white">
+                        제한 없음 (학교 실습실)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between items-center">
+                <button onclick="goToStep(1)" class="px-5 py-2.5 text-slate-600 font-medium rounded-xl hover:bg-slate-100 transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>이전</span>
+                </button>
+                <button onclick="generateAndGoToStep3()" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all flex items-center space-x-2 shadow-md hover:shadow-lg">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>주제 추천받기</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 3: Topic Recommendations ==================== -->
+        <section id="step-3-content" class="hidden bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
+            <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider">Step 3</span>
+                    <h2 class="text-2xl font-bold text-slate-900 mt-2">맞춤 탐구 주제 추천</h2>
+                    <p class="text-slate-500 text-sm mt-1"><span id="summary-subject" class="font-bold text-blue-600">생물</span> 분야의 엄선된 실험 주제입니다.</p>
+                </div>
+                <button onclick="goToStep(2)" class="text-xs text-slate-500 hover:text-blue-600 underline flex items-center space-x-1">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>조건 재설정</span>
+                </button>
+            </div>
+
+            <!-- Loader State -->
+            <div id="topics-loading" class="hidden py-16 text-center">
+                <div class="inline-block w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                <p class="font-semibold text-slate-700">AI가 안전하고 재미있는 실험을 생성 중입니다...</p>
+                <p class="text-xs text-slate-400 mt-1">선택하신 [과목/재료/예산] 조건에 맞는 최적의 가이드를 구성하고 있습니다.</p>
+            </div>
+
+            <!-- Recommendations Grid -->
+            <div id="topics-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Dynamically generated topic cards -->
+            </div>
+
+            <div class="flex justify-between items-center">
+                <button onclick="goToStep(2)" class="px-5 py-2.5 text-slate-600 font-medium rounded-xl hover:bg-slate-100 transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>이전 단계</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 4: Interactive Guide & AI Chat ==================== -->
+        <section id="step-4-content" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left 2 Cols: Experiment Detailed Guide -->
+                <div class="lg:col-span-2 bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <span id="detail-subject-tag" class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">생물</span>
+                        <div class="text-xs text-slate-500 flex items-center space-x-3">
+                            <span><i class="fa-solid fa-gauge text-slate-400"></i> 난이도: <strong id="detail-difficulty" class="text-slate-700">중급</strong></span>
+                            <span><i class="fa-solid fa-coins text-slate-400"></i> 예산: <strong id="detail-cost" class="text-slate-700">1만원 이하</strong></span>
+                        </div>
+                    </div>
+
+                    <h2 id="detail-title" class="text-2xl font-bold text-slate-900 mb-3">삼투압 현상과 세포막의 물질 이동 관찰</h2>
+                    <p id="detail-summary" class="text-slate-600 text-sm mb-6 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        식물 세포(양파/감자)를 다양한 농도의 소금물 및 설탕물에 담가 세포의 질량 및 형태 변화를 측정함으로써 삼투압 원리를 이해합니다.
+                    </p>
+
+                    <!-- Materials Needed -->
+                    <div class="mb-6">
+                        <h3 class="font-bold text-slate-800 text-base mb-2 flex items-center space-x-2">
+                            <i class="fa-solid fa-boxes-packing text-blue-600"></i>
+                            <span>준비물 및 재료</span>
+                        </h3>
+                        <div id="detail-materials" class="flex flex-wrap gap-2 text-xs">
+                            <!-- Dynamic materials tags -->
+                        </div>
+                    </div>
+
+                    <!-- Safety Warnings -->
+                    <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                        <h3 class="font-bold text-red-700 text-sm mb-1 flex items-center space-x-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>실험 안전 및 유의사항</span>
+                        </h3>
+                        <p id="detail-safety" class="text-xs text-red-600 leading-relaxed">
+                            칼 및 유리 기구를 사용할 때는 장갑을 착용하고 보호자의 지도하에 안전하게 진행하세요.
+                        </p>
+                    </div>
+
+                    <!-- Step by Step Procedures -->
+                    <div class="mb-8">
+                        <h3 class="font-bold text-slate-800 text-base mb-3 flex items-center space-x-2">
+                            <i class="fa-solid fa-list-check text-blue-600"></i>
+                            <span>단계별 실험 과정</span>
+                        </h3>
+                        <div id="detail-steps" class="space-y-3">
+                            <!-- Dynamic steps -->
+                        </div>
+                    </div>
+
+                    <!-- Proceed to Step 5 Button -->
+                    <div class="flex justify-between items-center pt-4 border-t border-slate-100">
+                        <button onclick="goToStep(3)" class="px-4 py-2 text-slate-600 font-medium rounded-lg hover:bg-slate-100 text-sm">
+                            <i class="fa-solid fa-arrow-left"></i> 다른 주제 선택
+                        </button>
+                        <button onclick="goToStep(5)" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all flex items-center space-x-2 shadow-md">
+                            <span>실험 결과 기록하기</span>
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right 1 Col: AI Assistant Chatbot -->
+                <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[650px] sticky top-20">
+                    <!-- Chat Header -->
+                    <div class="p-4 border-b border-slate-200 bg-slate-900 text-white rounded-t-2xl flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white text-sm font-bold">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm">LabMate AI 도우미</h3>
+                                <p class="text-[10px] text-slate-300">실시간 질의응답 & 트러블슈팅</p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-500/20 text-green-300">
+                            ● 실시간 연결
+                        </span>
+                    </div>
+
+                    <!-- Chat Messages Container -->
+                    <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs leading-relaxed bg-slate-50/50">
+                        <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl text-blue-900">
+                            <strong>👋 안녕하세요!</strong> <br>선택하신 <span id="chat-experiment-title" class="font-bold text-blue-700">실험</span>에 대해 궁금한 점이나 막히는 부분이 있다면 언제든 물어보세요!
+                        </div>
+                    </div>
+
+                    <!-- Quick Preset Buttons -->
+                    <div class="p-2 border-t border-slate-100 bg-white flex flex-wrap gap-1.5 text-[11px]">
+                        <button onclick="sendQuickPrompt('실험 결과가 예상과 다르게 나와요. 어떻게 해야 하나요?')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200">
+                            ⚠️ 트러블슈팅
+                        </button>
+                        <button onclick="sendQuickPrompt('이 실험의 핵심 과학적 원리를 쉽게 설명해줘.')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200">
+                            💡 원리 설명
+                        </button>
+                        <button onclick="sendQuickPrompt('데이터를 유의미하게 기록하는 팁을 알려줘.')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200">
+                            📊 데이터 기록 팁
+                        </button>
+                    </div>
+
+                    <!-- Chat Input Area -->
+                    <div class="p-3 border-t border-slate-200 bg-white rounded-b-2xl flex items-center space-x-2">
+                        <input type="text" id="chat-input" onkeydown="handleChatKeyDown(event)" placeholder="질문을 입력하세요..." class="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button onclick="sendChatMessage()" class="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 5: Results Recording & Export ==================== -->
+        <section id="step-5-content" class="hidden bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200">
+            <div class="mb-6">
+                <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider">Step 5</span>
+                <h2 class="text-2xl font-bold text-slate-900 mt-2">실험 결과 기록 및 저장</h2>
+                <p class="text-slate-500 text-sm mt-1">측정한 데이터와 결과를 정리하여 나만의 탐구 보고서를 완성하세요.</p>
+            </div>
+
+            <!-- Experiment Title & Meta Banner -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                <div>
+                    <span id="record-subject-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-700 font-bold text-xs rounded-full">생물</span>
+                    <h3 id="record-experiment-title" class="font-bold text-slate-900 text-lg mt-1">실험 제목</h3>
+                </div>
+                <div class="text-xs text-slate-500">
+                    작성일: <span id="record-date-str" class="font-medium text-slate-700">2026-10-22</span>
+                </div>
+            </div>
+
+            <!-- Data Table Input -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <label class="font-bold text-slate-800 text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-table text-blue-600"></i>
+                        <span>실험 데이터 측정 표</span>
+                    </label>
+                    <button onclick="addTableRow()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors">
+                        + 행 추가
+                    </button>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table id="data-table" class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 text-slate-700 font-semibold uppercase">
+                            <tr>
+                                <th class="p-3 border-b">회차 / 조건</th>
+                                <th class="p-3 border-b">조작 변인 (예: 농도 %)</th>
+                                <th class="p-3 border-b">종속 변인 (예: 질량/길이 변화)</th>
+                                <th class="p-3 border-b">비고 / 관찰 특이사항</th>
+                                <th class="p-3 border-b text-center w-12">삭제</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body" class="divide-y divide-slate-100">
+                            <!-- Dynamic Table Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Discussion / Conclusion Text Area -->
+            <div class="mb-8">
+                <label for="conclusion-text" class="block font-bold text-slate-800 text-sm mb-2 flex items-center space-x-2">
+                    <i class="fa-solid fa-square-poll-vertical text-blue-600"></i>
+                    <span>결과 분석 및 고찰 (결론)</span>
+                </label>
+                <textarea id="conclusion-text" rows="5" placeholder="실험 결과를 통해 배운 점, 오차의 원인, 이론적 배경과의 비교 및 알게 된 점을 작성해보세요." class="w-full p-4 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"></textarea>
+            </div>
+
+            <!-- Save & Action Controls -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-slate-100">
+                <button onclick="goToStep(4)" class="w-full sm:w-auto px-5 py-2.5 text-slate-600 font-medium rounded-xl hover:bg-slate-100 transition-all text-sm">
+                    <i class="fa-solid fa-arrow-left"></i> 실험 과정으로 돌아가기
+                </button>
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <button onclick="saveCurrentNotebook()" class="flex-1 sm:flex-initial px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-all text-sm flex items-center justify-center space-x-2 shadow-md">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>탐구 노트 저장</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Saved Notebooks Library -->
+    <div id="saved-notebooks-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-book-bookmark text-blue-600 text-lg"></i>
+                    <h3 class="font-bold text-slate-900 text-base">나의 저장된 탐구 노트</h3>
+                </div>
+                <button onclick="toggleSavedNotebookModal()" class="text-slate-400 hover:text-slate-600 text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content List -->
+            <div id="saved-notebooks-list" class="p-6 overflow-y-auto flex-1 space-y-4">
+                <!-- Dynamically populated notebook cards -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-200 bg-slate-50 text-right">
+                <button onclick="toggleSavedNotebookModal()" class="px-5 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-700">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable Report Overlay -->
+    <div id="printable-area" class="hidden print:block p-8 bg-white text-slate-900">
+        <!-- JS injects printable html structure -->
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
+        <p>© 2026 LabMate AI - 청소년을 위한 안전하고 쉬운 과학 탐구 가이드</p>
+    </footer>
+
+    <!-- ==================== APPLICATION LOGIC & GEMINI INTEGRATION ==================== -->
+    <script>
+        // --- State Management ---
+        const state = {
+            currentStep: 1,
+            selectedSubject: null, // '생물', '화학', '물리', '지구과학'
+            selectedKeywords: '',
+            selectedEquipment: ['비커', '스포이트', '온도계'],
+            selectedBudget: '1만원 이하',
+            recommendedTopics: [],
+            selectedTopic: null,
+            chatHistory: [],
+            tableRows: [],
+            savedNotebooks: []
+        };
+
+        // --- Available Equipment Preset List ---
+        const defaultEquipments = [
+            '현미경', '비커', '시험관', '온도계', '전자저울', 
+            '돋보기', 'pH시험지', '알코올램프', '스포이트', '핀셋', 
+            '슬라이드글라스', '자/줄자', '비닐장갑', '보호안경'
+        ];
+
+        // --- Subject-Specific Recommendation Database ---
+        const subjectDatabase = {
+            '생물': [
+                {
+                    id: 'bio-1',
+                    title: '삼투압 현상과 세포막의 물질 이동 관찰',
+                    subject: '생물',
+                    difficulty: '중급',
+                    cost: '1만원 이하',
+                    summary: '양파 표피세포와 감자 조각을 농도별 소금물/설탕물에 담가 세포 부피와 질량 변화를 관찰하고 삼투 원리를 구명합니다.',
+                    materials: ['감자 또는 양파', '소금', '비커/투명 컵', '전자저울', '자', '슬라이드글라스', '현미경/돋보기'],
+                    steps: [
+                        '농도 0%(맹물), 5%, 10%, 15%의 소금물 용액을 준비합니다.',
+                        '감자를 동일한 크기(예: 3cm x 1cm x 1cm)로 잘라 질량을 측정합니다.',
+                        '각 용액에 감자 조각을 30분간 담근 후 꺼내어 질량과 길이를 재측정합니다.',
+                        '농도에 따른 질량 변화율(%)을 계산하여 삼투 현상의 원리를 분석합니다.'
+                    ],
+                    safety: '칼로 감자를 자를 때 손을 베이지 않도록 안전장갑을 착용하세요.'
+                },
+                {
+                    id: 'bio-2',
+                    title: '카탈레이스 효소의 온도 및 pH에 따른 활성 변화',
+                    subject: '생물',
+                    difficulty: '중급',
+                    cost: '1만원 이하',
+                    summary: '감자나 소간에 포함된 카탈레이스 효소가 과산화수소를 분해하여 산소 거품을 발생시키는 속도를 측정합니다.',
+                    materials: ['과산화수소수', '감자 생즙', '시험관/투명 컵', '온도계', '식초', '베이킹소다'],
+                    steps: [
+                        '시험관 3개에 과산화수소수를 동일하게 넣습니다.',
+                        '각각 얼음물(0℃), 미온수(37℃), 뜨거운 물(80℃) 조건으로 온도를 설정합니다.',
+                        '동일한 양의 감자 즙을 넣고 1분간 발생하는 거품의 높이(cm)를 측정하여 효소 활성도를 비교합니다.'
+                    ],
+                    safety: '과산화수소수는 피부에 닿으면 자극이 발생할 수 있으므로 장갑을 착용하세요.'
+                },
+                {
+                    id: 'bio-3',
+                    title: '식물의 증산작용과 기공 개폐 조건 비교',
+                    subject: '생물',
+                    difficulty: '초급',
+                    cost: '0원 (집에 있는 재료)',
+                    summary: '식물의 잎 뒷면에 있는 기공을 통한 증산작용이 빛, 습도, 바람 조건에 따라 어떻게 변하는지 관찰합니다.',
+                    materials: ['잎이 많은 식물', '투명 비닐봉지 3개', '고무줄', '스탠드/햇빛'],
+                    steps: [
+                        '동일한 식물 가지 3곳에 투명 비닐봉지를 씌우고 고무줄로 밀봉합니다.',
+                        'A는 햇빛이 잘 드는 곳, B는 어두운 그늘, C는 부채질(바람) 환경에 2시간 동안 둡니다.',
+                        '비닐봉지 내부에 맺힌 물방울의 양을 비교하여 증산작용 속도를 고찰합니다.'
+                    ],
+                    safety: '식물 가지를 강하게 꺾지 않도록 유의하세요.'
+                }
+            ],
+            '화학': [
+                {
+                    id: 'chem-1',
+                    title: '천연 지시약(자색양배추)을 이용한 pH 측정과 산염기 중화반응',
+                    subject: '화학',
+                    difficulty: '초급',
+                    cost: '1만원 이하',
+                    summary: '자색양배추 안토시아닌 색소를 추출하여 생활 속 다양한 용액(식초, 사이다, 비눗물 등)의 pH 색상 변화를 관찰합니다.',
+                    materials: ['자색양배추', '식초', '탄산음료', '비눗물', 'pH시험지', '비커/투명 컵', '스포이트'],
+                    steps: [
+                        '자색양배추를 따뜻한 물에 담가 보라색 지시약 추출액을 만듭니다.',
+                        '다양한 용액에 추출액을 몇 방울 떨어뜨려 붉은색(산성), 보라색(중성), 푸른/노란색(염기성) 변화를 확인합니다.'
+                    ],
+                    safety: '용액이 눈에 들어가지 않도록 주의하고 시음하지 마세요.'
+                },
+                {
+                    id: 'chem-2',
+                    title: '온도에 따른 산소계 표백제의 산소 기체 발생 반응 속도',
+                    subject: '화학',
+                    difficulty: '중급',
+                    cost: '1만원 이하',
+                    summary: '과탄산소다가 물과 반응하여 산소 기체를 발생하는 반응 속도가 온도에 따라 어떻게 달라지는지 관찰합니다.',
+                    materials: ['과탄산소다', '온도계', '비커', '메스실린더/눈금컵', '초시계'],
+                    steps: [
+                        '20℃, 40℃, 60℃의 물을 동일한 양으로 준비합니다.',
+                        '동일한 양의 과탄산소다를 넣고 기포가 발생하는 시간과 거품 높이를 기록합니다.'
+                    ],
+                    safety: '따뜻한 물 사용 시 데이지 않도록 주의하세요.'
+                }
+            ],
+            '물리': [
+                {
+                    id: 'phys-1',
+                    title: '간이 전자기력 및 모터 원리 탐구',
+                    subject: '물리',
+                    difficulty: '중급',
+                    cost: '1만원 이하',
+                    summary: '네오디뮴 자석과 에나멜선, 건전지를 이용하여 플레밍의 왼손 법칙과 전자기력에 의한 회전 현상을 관찰합니다.',
+                    materials: ['건전지(AA)', '네오디뮴 자석', '구리선/에나멜선', '클립'],
+                    steps: [
+                        '구리선을 하트 모양이나 원형 루프로 구부립니다.',
+                        '건전지 아래에 자석을 붙이고 구리선을 얹어 전자기력에 의해 회전하는 모습을 관찰합니다.'
+                    ],
+                    safety: '전선이 과열될 수 있으므로 장시간 연속 연결하지 마세요.'
+                },
+                {
+                    id: 'phys-2',
+                    title: '빛의 굴절율 측정과 굴절 법칙(스넬의 법칙) 관찰',
+                    subject: '물리',
+                    difficulty: '초급',
+                    cost: '0원 (집에 있는 재료)',
+                    summary: '레이저 포인터와 사각 유리/물 그릇을 이용해 빛이 매질을 통과할 때 꺾이는 각도를 측정합니다.',
+                    materials: ['레이저 포인터', '투명 수조/컵', '각도기', '우유 한 방울'],
+                    steps: [
+                        '수조에 물을 채우고 우유 한 방울을 떨어뜨려 빛의 경로가 보이게 합니다.',
+                        '입사각을 15도, 30도, 45도로 변화시키며 굴절각을 각도기로 측정합니다.'
+                    ],
+                    safety: '레이저 빛을 절대로 사람의 눈에 직접 비추지 마세요.'
+                }
+            ],
+            '지구과학': [
+                {
+                    id: 'earth-1',
+                    title: '대기압의 원리와 구름 형성(단열 팽창) 실습',
+                    subject: '지구과학',
+                    difficulty: '초급',
+                    cost: '0원 (집에 있는 재료)',
+                    summary: '페트병 내부의 압력을 높였다가 순간적으로 줄여 단열 팽창에 의해 응결핵 주변에 인공 구름이 생기는 원리를 실험합니다.',
+                    materials: ['투명 페트병', '공기주입기 또는 마개', '향/향초(응결핵 역할)', '물'],
+                    steps: [
+                        '페트병 내부에 물을 조금 넣고 향 연기를 조금 넣은 후 뚜껑을 닫습니다.',
+                        '페트병을 압축했다가 릴리즈하거나 공기를 주입 후 뚜껑을 열어 내부가 뿌옇게 흐려지는 구름 형성을 관찰합니다.'
+                    ],
+                    safety: '향 불꽃을 다룰 때 화재에 주의하세요.'
+                }
+            ]
+        };
+
+        // --- Init Application ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderEquipmentChips();
+            loadSavedNotebooksFromStorage();
+            updateSavedCount();
+        });
+
+        // --- Navigation Controller ---
+        function goToStep(stepNumber) {
+            state.currentStep = stepNumber;
+
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`step-${i}-content`);
+                if (el) el.classList.add('hidden');
+
+                const ind = document.getElementById(`step-indicator-${i}`);
+                if (ind) {
+                    ind.className = 'text-slate-400 flex items-center space-x-2 pb-2 -mb-4 transition-all';
+                    if (i < stepNumber) {
+                        ind.classList.add('step-completed');
+                    } else if (i === stepNumber) {
+                        ind.classList.add('step-active', 'border-b-2', 'border-blue-600');
+                    }
+                }
+            }
+
+            const activeSec = document.getElementById(`step-${stepNumber}-content`);
+            if (activeSec) activeSec.classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- Step 1: Subject Selection ---
+        function selectSubject(subjectName) {
+            state.selectedSubject = subjectName;
+
+            document.querySelectorAll('.subject-btn').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'border-emerald-500', 'border-amber-500', 'border-purple-500', 'bg-blue-50/30', 'shadow-md');
+                btn.querySelector('.selected-check').classList.add('hidden');
+            });
+
+            const targetBtn = document.getElementById(`btn-subject-${subjectName}`);
+            if (targetBtn) {
+                let borderClass = 'border-blue-600';
+                if (subjectName === '생물') borderClass = 'border-emerald-500';
+                if (subjectName === '화학') borderClass = 'border-amber-500';
+                if (subjectName === '지구과학') borderClass = 'border-purple-500';
+
+                targetBtn.classList.add(borderClass, 'bg-blue-50/30', 'shadow-md');
+                targetBtn.querySelector('.selected-check').classList.remove('hidden');
+            }
+
+            const nextBtn = document.getElementById('step1-next-btn');
+            nextBtn.disabled = false;
+            nextBtn.className = 'px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all flex items-center space-x-2 shadow-md cursor-pointer';
+        }
+
+        // --- Step 2: Equipment & Budget UI ---
+        function renderEquipmentChips() {
+            const container = document.getElementById('equipment-chips-container');
+            container.innerHTML = '';
+
+            defaultEquipments.forEach(eq => {
+                const isSelected = state.selectedEquipment.includes(eq);
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = `px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                    isSelected 
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                }`;
+                chip.innerHTML = `${isSelected ? '<i class="fa-solid fa-check mr-1"></i>' : ''}${eq}`;
+                chip.onclick = () => toggleEquipment(eq);
+                container.appendChild(chip);
+            });
+        }
+
+        function toggleEquipment(eq) {
+            if (state.selectedEquipment.includes(eq)) {
+                state.selectedEquipment = state.selectedEquipment.filter(item => item !== eq);
+            } else {
+                state.selectedEquipment.push(eq);
+            }
+            renderEquipmentChips();
+        }
+
+        function addCustomEquipment() {
+            const input = document.getElementById('custom-equipment-input');
+            const val = input.value.trim();
+            if (val && !state.selectedEquipment.includes(val)) {
+                state.selectedEquipment.push(val);
+                if (!defaultEquipments.includes(val)) {
+                    defaultEquipments.push(val);
+                }
+                input.value = '';
+                renderEquipmentChips();
+                showToast(`'${val}' 도구가 추가되었습니다.`);
+            }
+        }
+
+        function selectBudget(budgetValue) {
+            state.selectedBudget = budgetValue;
+            document.querySelectorAll('.budget-btn').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'bg-blue-50', 'text-blue-700', 'font-bold');
+            });
+
+            const targetMap = {
+                '0원 (집에 있는 재료)': 'budget-0',
+                '1만원 이하': 'budget-10000',
+                '3만원 이하': 'budget-30000',
+                '제한 없음': 'budget-any'
+            };
+
+            const btnId = targetMap[budgetValue];
+            if (btnId) {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.classList.add('border-blue-600', 'bg-blue-50', 'text-blue-700', 'font-bold');
+            }
+        }
+
+        // --- Step 3: AI Recommendation Generator ---
+        async function generateAndGoToStep3() {
+            state.selectedKeywords = document.getElementById('keyword-input').value.trim();
+
+            if (!state.selectedSubject) {
+                showToast('과목을 선택해주세요!', 'error');
+                goToStep(1);
+                return;
+            }
+
+            goToStep(3);
+
+            document.getElementById('summary-subject').innerText = state.selectedSubject;
+
+            const loadingEl = document.getElementById('topics-loading');
+            const gridEl = document.getElementById('topics-grid');
+
+            loadingEl.classList.remove('hidden');
+            gridEl.innerHTML = '';
+
+            try {
+                const topics = await fetchGeminiTopics(state.selectedSubject, state.selectedKeywords, state.selectedEquipment, state.selectedBudget);
+                state.recommendedTopics = topics;
+            } catch (err) {
+                console.warn("Using subject-matched fallback database:", err);
+                state.recommendedTopics = subjectDatabase[state.selectedSubject] || subjectDatabase['생물'];
+            } finally {
+                loadingEl.classList.add('hidden');
+                renderTopicCards(state.recommendedTopics);
+            }
+        }
+
+        async function fetchGeminiTopics(subject, keywords, equipment, budget) {
+            const systemPrompt = `당신은 중고등학교 과학 탐구 지도교사입니다. 반드시 [${subject}] 과목 분야에 속하는 맞춤형 과학 실험 주제 3개를 추천하세요. 다른 과목 주제는 절대로 포함하지 마세요.`;
+            const userPrompt = `
+                과목: ${subject}
+                관심 키워드: ${keywords || '없음'}
+                보유 실험 기구: ${equipment.join(', ')}
+                예산: ${budget}
+
+                이 조건에 맞는 [${subject}] 과목 전용 실험 주제 3개를 JSON 배열 구조로 응답하세요.
+            `;
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                id: { type: "STRING" },
+                                title: { type: "STRING" },
+                                subject: { type: "STRING" },
+                                difficulty: { type: "STRING" },
+                                cost: { type: "STRING" },
+                                summary: { type: "STRING" },
+                                materials: { type: "ARRAY", items: { type: "STRING" } },
+                                steps: { type: "ARRAY", items: { type: "STRING" } },
+                                safety: { type: "STRING" }
+                            },
+                            required: ["title", "subject", "difficulty", "cost", "summary", "materials", "steps", "safety"]
+                        }
+                    }
+                }
+            };
+
+            const resp = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) throw new Error("API request failed");
+            const data = await resp.json();
+            const textResult = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!textResult) throw new Error("No payload");
+            
+            return JSON.parse(textResult);
+        }
+
+        function renderTopicCards(topics) {
+            const gridEl = document.getElementById('topics-grid');
+            gridEl.innerHTML = '';
+
+            topics.forEach((topic, idx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-50 border border-slate-200 hover:border-blue-500 rounded-2xl p-6 transition-all hover:shadow-md flex flex-col justify-between group';
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-1 bg-blue-100 text-blue-700 font-bold text-xs rounded-full">${topic.subject || state.selectedSubject}</span>
+                            <span class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-signal text-blue-500 mr-1"></i>${topic.difficulty || '보통'}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-lg mb-2 group-hover:text-blue-600 transition-colors">${escapeHtml(topic.title)}</h3>
+                        <p class="text-slate-600 text-xs leading-relaxed mb-4 line-clamp-3">${escapeHtml(topic.summary)}</p>
+                    </div>
+
+                    <div>
+                        <div class="border-t border-slate-200/80 pt-3 mb-4 flex items-center justify-between text-xs text-slate-500">
+                            <span><i class="fa-solid fa-coins text-amber-500 mr-1"></i>예산: ${escapeHtml(topic.cost)}</span>
+                            <span><i class="fa-solid fa-screwdriver-wrench text-slate-400 mr-1"></i>재료 ${topic.materials ? topic.materials.length : 0}개</span>
+                        </div>
+                        <button onclick="selectTopicAndProceed(${idx})" class="w-full py-2.5 bg-white border border-slate-300 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-slate-800 font-semibold text-xs rounded-xl transition-all shadow-sm">
+                            이 실험 선택 및 가이드 보기
+                        </button>
+                    </div>
+                `;
+                gridEl.appendChild(card);
+            });
+        }
+
+        // --- Step 4: Select Topic and Load Interactive Guide & AI Chat ---
+        function selectTopicAndProceed(topicIndex) {
+            const topic = state.recommendedTopics[topicIndex];
+            state.selectedTopic = topic;
+
+            document.getElementById('detail-subject-tag').innerText = topic.subject || state.selectedSubject;
+            document.getElementById('detail-difficulty').innerText = topic.difficulty || '보통';
+            document.getElementById('detail-cost').innerText = topic.cost || '1만원 이하';
+            document.getElementById('detail-title').innerText = topic.title;
+            document.getElementById('detail-summary').innerText = topic.summary;
+            document.getElementById('detail-safety').innerText = topic.safety || '보호장구를 착용하고 안전에 유의하세요.';
+
+            const matContainer = document.getElementById('detail-materials');
+            matContainer.innerHTML = '';
+            (topic.materials || []).forEach(m => {
+                const tag = document.createElement('span');
+                tag.className = 'px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200';
+                tag.innerText = m;
+                matContainer.appendChild(tag);
+            });
+
+            const stepsContainer = document.getElementById('detail-steps');
+            stepsContainer.innerHTML = '';
+            (topic.steps || []).forEach((step, idx) => {
+                const stepEl = document.createElement('div');
+                stepEl.className = 'flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed';
+                stepEl.innerHTML = `
+                    <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">${idx + 1}</span>
+                    <span>${escapeHtml(step)}</span>
+                `;
+                stepsContainer.appendChild(stepEl);
+            });
+
+            document.getElementById('chat-experiment-title').innerText = topic.title;
+
+            state.chatHistory = [];
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = `
+                <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl text-blue-900 text-xs">
+                    <strong>👋 안녕하세요!</strong> <br>선택하신 <span class="font-bold text-blue-700">${escapeHtml(topic.title)}</span> 실험에 대해 궁금한 점이나 막히는 부분이 있다면 언제든 물어보세요!
+                </div>
+            `;
+
+            initDefaultTableRows(topic);
+            goToStep(4);
+        }
+
+        // --- Step 4 Chatbot Logic ---
+        function handleChatKeyDown(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function sendQuickPrompt(promptText) {
+            document.getElementById('chat-input').value = promptText;
+            sendChatMessage();
+        }
+
+        async function sendChatMessage() {
+            const inputEl = document.getElementById('chat-input');
+            const message = inputEl.value.trim();
+            if (!message) return;
+
+            inputEl.value = '';
+            appendChatMessage('user', message);
+
+            const loadingId = appendChatLoading();
+
+            try {
+                const responseText = await getAIChatResponse(message);
+                removeChatMessage(loadingId);
+                appendChatMessage('ai', responseText);
+            } catch (err) {
+                removeChatMessage(loadingId);
+                appendChatMessage('ai', '죄송합니다, AI 응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            }
+        }
+
+        function appendChatMessage(sender, text) {
+            const chatBox = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+
+            if (sender === 'user') {
+                msgDiv.className = 'flex justify-end';
+                msgDiv.innerHTML = `
+                    <div class="bg-blue-600 text-white px-3.5 py-2.5 rounded-2xl rounded-tr-none max-w-[85%] text-xs shadow-sm">
+                        ${escapeHtml(text)}
+                    </div>
+                `;
+            } else {
+                msgDiv.className = 'flex justify-start items-start space-x-2';
+                msgDiv.innerHTML = `
+                    <div class="w-6 h-6 rounded-md bg-blue-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-1">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 text-slate-800 px-3.5 py-2.5 rounded-2xl rounded-tl-none max-w-[85%] text-xs shadow-sm leading-relaxed">
+                        ${escapeHtml(text).replace(/\n/g, '<br>')}
+                    </div>
+                `;
+            }
+
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendChatLoading() {
+            const chatBox = document.getElementById('chat-messages');
+            const id = 'loading-' + Date.now();
+            const msgDiv = document.createElement('div');
+            msgDiv.id = id;
+            msgDiv.className = 'flex justify-start items-start space-x-2';
+            msgDiv.innerHTML = `
+                <div class="w-6 h-6 rounded-md bg-blue-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-1">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="bg-white border border-slate-200 text-slate-500 px-3 py-2 rounded-2xl text-xs flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+                    <span>AI 답변 작성 중...</span>
+                </div>
+            `;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return id;
+        }
+
+        function removeChatMessage(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        async function getAIChatResponse(userQuery) {
+            const topic = state.selectedTopic || {};
+            const systemPrompt = `
+                당신은 중고등학생 과학 탐구 보조 AI 튜터 'LabMate'입니다.
+                현재 학생이 수행 중인 실험 정보는 다음과 같습니다:
+                - 과목: ${topic.subject || state.selectedSubject}
+                - 주제: ${topic.title}
+                - 개요: ${topic.summary}
+                - 단계: ${(topic.steps || []).join(' -> ')}
+
+                학생의 질문에 친절하고 이해하기 쉬운 과학적 용어로 명확하게 답변하세요.
+            `;
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [
+                    ...state.chatHistory,
+                    { role: 'user', parts: [{ text: userQuery }] }
+                ],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            const resp = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!resp.ok) throw new Error("Chat API failed");
+
+            const data = await resp.json();
+            const aiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (aiReply) {
+                state.chatHistory.push({ role: 'user', parts: [{ text: userQuery }] });
+                state.chatHistory.push({ role: 'model', parts: [{ text: aiReply }] });
+                return aiReply;
+            } else {
+                return "답변을 생성하지 못했습니다. 다시 질문해주세요.";
+            }
+        }
+
+        // --- Step 5: Data Table & Notebook Recording Logic ---
+        function initDefaultTableRows(topic) {
+            document.getElementById('record-subject-badge').innerText = topic.subject || state.selectedSubject;
+            document.getElementById('record-experiment-title').innerText = topic.title;
+            document.getElementById('record-date-str').innerText = new Date().toISOString().split('T')[0];
+
+            state.tableRows = [
+                { trial: '1회차 (대조군)', variable: '0%', result: '변화 없음', notes: '기준값 설정' },
+                { trial: '2회차 (실험군1)', variable: '5%', result: '-0.3g (감소)', notes: '약간의 변화' },
+                { trial: '3회차 (실험군2)', variable: '10%', result: '-0.8g (감소)', notes: '확연한 수축 관찰' }
+            ];
+
+            renderTableRows();
+        }
+
+        function renderTableRows() {
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '';
+
+            state.tableRows.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-2 border-b"><input type="text" value="${escapeHtml(row.trial)}" onchange="updateRow(${idx}, 'trial', this.value)" class="w-full p-1 border rounded text-xs"></td>
+                    <td class="p-2 border-b"><input type="text" value="${escapeHtml(row.variable)}" onchange="updateRow(${idx}, 'variable', this.value)" class="w-full p-1 border rounded text-xs"></td>
+                    <td class="p-2 border-b"><input type="text" value="${escapeHtml(row.result)}" onchange="updateRow(${idx}, 'result', this.value)" class="w-full p-1 border rounded text-xs"></td>
+                    <td class="p-2 border-b"><input type="text" value="${escapeHtml(row.notes)}" onchange="updateRow(${idx}, 'notes', this.value)" class="w-full p-1 border rounded text-xs"></td>
+                    <td class="p-2 border-b text-center"><button onclick="deleteTableRow(${idx})" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addTableRow() {
+            state.tableRows.push({
+                trial: `${state.tableRows.length + 1}회차`,
+                variable: '',
+                result: '',
+                notes: ''
+            });
+            renderTableRows();
+        }
+
+        function updateRow(idx, field, value) {
+            if (state.tableRows[idx]) {
+                state.tableRows[idx][field] = value;
+            }
+        }
+
+        function deleteTableRow(idx) {
+            state.tableRows.splice(idx, 1);
+            renderTableRows();
+        }
+
+        // --- Save Notebook to LocalStorage ---
+        function saveCurrentNotebook() {
+            const topic = state.selectedTopic;
+            if (!topic) {
+                showToast('선택된 실험 주제가 없습니다.', 'error');
+                return;
+            }
+
+            const conclusion = document.getElementById('conclusion-text').value;
+
+            const notebookRecord = {
+                id: 'nb-' + Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                subject: topic.subject || state.selectedSubject,
+                title: topic.title,
+                summary: topic.summary,
+                materials: topic.materials,
+                steps: topic.steps,
+                tableRows: [...state.tableRows],
+                conclusion: conclusion
+            };
+
+            state.savedNotebooks.unshift(notebookRecord);
+            localStorage.setItem('labmate_saved_notebooks', JSON.stringify(state.savedNotebooks));
+
+            updateSavedCount();
+            showToast('탐구 노트에 성공적으로 저장되었습니다!');
+        }
+
+        function loadSavedNotebooksFromStorage() {
+            const raw = localStorage.getItem('labmate_saved_notebooks');
+            if (raw) {
+                try {
+                    state.savedNotebooks = JSON.parse(raw);
+                } catch (e) {
+                    state.savedNotebooks = [];
+                }
+            }
+        }
+
+        function updateSavedCount() {
+            document.getElementById('saved-count').innerText = state.savedNotebooks.length;
+        }
+
+        // --- Saved Notebooks Modal Logic ---
+        function toggleSavedNotebookModal() {
+            const modal = document.getElementById('saved-notebooks-modal');
+            const isHidden = modal.classList.contains('hidden');
+
+            if (isHidden) {
+                renderSavedNotebooksList();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderSavedNotebooksList() {
+            const container = document.getElementById('saved-notebooks-list');
+            container.innerHTML = '';
+
+            if (state.savedNotebooks.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-300"></i>
+                        <p class="text-sm">저장된 탐구 보고서가 없습니다.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            state.savedNotebooks.forEach((nb, idx) => {
+                const card = document.createElement('div');
+                card.className = 'border border-slate-200 rounded-xl p-4 bg-slate-50 hover:bg-white transition-all shadow-sm';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 font-bold text-xs rounded-full">${escapeHtml(nb.subject)}</span>
+                        <span class="text-xs text-slate-400">${escapeHtml(nb.date)}</span>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-base mb-2">${escapeHtml(nb.title)}</h4>
+                    <p class="text-xs text-slate-600 line-clamp-2 mb-3">${escapeHtml(nb.conclusion) || '결론 미작성'}</p>
+                    
+                    <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-200 text-xs">
+                        <button onclick="printNotebook(${idx})" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium transition-colors">
+                            <i class="fa-solid fa-print mr-1"></i> 출력/PDF
+                        </button>
+                        <button onclick="deleteSavedNotebook(${idx})" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium transition-colors">
+                            삭제
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteSavedNotebook(idx) {
+            state.savedNotebooks.splice(idx, 1);
+            localStorage.setItem('labmate_saved_notebooks', JSON.stringify(state.savedNotebooks));
+            renderSavedNotebooksList();
+            updateSavedCount();
+            showToast('보고서가 삭제되었습니다.');
+        }
+
+        function printNotebook(idx) {
+            const nb = state.savedNotebooks[idx];
+            if (!nb) return;
+
+            const printArea = document.getElementById('printable-area');
+            printArea.innerHTML = `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h1 style="font-size: 24px; font-weight: bold; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">[${escapeHtml(nb.subject)}] 과학 탐구 보고서</h1>
+                    <p style="color: #64748b; font-size: 12px; margin-top: 5px;">작성일자: ${escapeHtml(nb.date)}</p>
+                    
+                    <h2 style="font-size: 18px; margin-top: 20px; font-weight: bold;">1. 탐구 주제</h2>
+                    <p style="font-size: 14px; background: #f8fafc; padding: 10px; border-radius: 6px;">${escapeHtml(nb.title)}</p>
+                    
+                    <h2 style="font-size: 18px; margin-top: 20px; font-weight: bold;">2. 실험 개요</h2>
+                    <p style="font-size: 12px; line-height: 1.6;">${escapeHtml(nb.summary)}</p>
+                    
+                    <h2 style="font-size: 18px; margin-top: 20px; font-weight: bold;">3. 측정 데이터 표</h2>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px;" border="1" cellpadding="8">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th>회차</th>
+                                <th>조작 변인</th>
+                                <th>종속 변인 (결과)</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(nb.tableRows || []).map(r => `
+                                <tr>
+                                    <td>${escapeHtml(r.trial)}</td>
+                                    <td>${escapeHtml(r.variable)}</td>
+                                    <td>${escapeHtml(r.result)}</td>
+                                    <td>${escapeHtml(r.notes)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <h2 style="font-size: 18px; margin-top: 20px; font-weight: bold;">4. 결론 및 고찰</h2>
+                    <div style="font-size: 12px; line-height: 1.6; white-space: pre-wrap; background: #f8fafc; padding: 10px; border-radius: 6px;">${escapeHtml(nb.conclusion) || '내용 없음'}</div>
+                </div>
+            `;
+
+            window.print();
+        }
+
+        // --- Helper Utilities ---
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msgEl = document.getElementById('toast-msg');
+
+            msgEl.innerText = msg;
+            if (type === 'error') {
+                icon.className = 'fa-solid fa-circle-exclamation text-red-400';
+            } else {
+                icon.className = 'fa-solid fa-circle-check text-green-400';
+            }
+
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
